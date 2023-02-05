@@ -1,6 +1,7 @@
 # User Segmentation System
 ## Introduction
-This system is designed to efficiently manage and retrieve the number of users in different segments.
+One solution to this problem would be to implement an expiration mechanism in the ES. Each time ES receives a new pair from USS, it would store it with a timestamp indicating when it will expire (i.e. after two weeks). ES can periodically check for expired pairs and remove them from its storage. To answer the query, ES can maintain a count of the number of active users for each segment by incrementing the count when a new pair arrives and decrementing it when a pair expires. This way, ES will always have up-to-date information on the number of active users for each segment.
+
 
 ## Architecture
 The architecture of this system is composed of several components:
