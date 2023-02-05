@@ -1,0 +1,7 @@
+postgresSource: "host=localhost port=5432 user=pgsql dbname=profile sslmode=disable password=testPassword"
+pgMigrationSource: "postgres://pgsql:testPassword@localhost:5432/profile?sslmode=disable&search_path=public"
+serverPort: ":9000"
+
+redis:
+  host: 192.168.88.108
+  port: 6379
