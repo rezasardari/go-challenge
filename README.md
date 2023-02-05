@@ -30,3 +30,14 @@ To improve performance, a load balancer will be used to distribute incoming requ
 
 ### Scaling
 The USS can be easily scaled by adding new instances. The Kubernetes cluster will automatically distribute incoming requests among the available instances, ensuring that the system can handle growing demands. Additionally, the use of InfluxDB and Redis will allow the system to scale horizontally, providing improved performance and reliability.
+
+## Conclusion
+In conclusion, this solution uses InfluxDB as the main database for storing the data about active user segments, along with Redis for caching purposes to improve the query performance. The solution also utilizes Kubernetes for managing the deployment and scaling of the services and Golang for implementing the endpoint logic.
+
+By using InfluxDB with its built-in retention mechanism, we can ensure that data older than two weeks will be automatically expired and won't affect the query performance. And by using Redis for caching, we can reduce the load on the database and provide fast responses for frequent queries.
+
+Load balancing is also a crucial aspect of this solution as it helps distribute the load across multiple instances of the service, improving the overall performance and ensuring high availability. With this architecture, we can easily scale the solution horizontally to handle large amounts of user data and queries.
+
+
+
+
