@@ -11,6 +11,10 @@ type Controller struct {
 
 func (cr Controller) SetRoutes(e *gin.Engine) {
 	e.GET("/health", cr.health)
+	e.POST("/send", cr.StoreUserInSegment)
+	e.GET("/estimate", cr.GetUserCountBySegmentation)
+	e.GET("/archive", cr.ArchiveExpiredData)
+	e.GET("/update-cache", cr.UpdateCacheData)
 }
 
 func (cr Controller) health(c *gin.Context) {
@@ -58,6 +62,6 @@ func (cr Controller) ArchiveExpiredData(c *gin.Context) {
 }
 
 func (cr Controller) UpdateCacheData(c *gin.Context) {
-	cr.Service.ArchiveExpiredSegment(c)
+	cr.Service.UpdateCacheData(c)
 	c.JSON(http.StatusNoContent, gin.H{})
 }
