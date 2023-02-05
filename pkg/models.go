@@ -5,8 +5,8 @@ type UserCountBySegmentRequest struct {
 }
 
 type UserCountBySegmentResponse struct {
-	Segmentation string
-	Count        int
+	Segment string
+	Count   int
 }
 
 type StoreUserSegmentRequest struct {
