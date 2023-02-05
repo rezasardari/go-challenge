@@ -1,40 +1,32 @@
-# How many users? (Go Challenge)
+# User Segmentation System with InfluxDB, Redis, Load Balancer, Kubernetes, and Golang
+## Introduction
+In this solution, we will implement a User Segmentation System (USS) to store and retrieve the number of active users in each segment. The system will make use of InfluxDB for long-term storage and Redis for caching. Load balancing will be added to improve performance, and the system will be deployed on a Kubernetes cluster for easy scaling. All implementation will be done in Golang.
 
-Suppose there is a "User Segmentation Service" (USS) that segments users based on their activities.
-For example, if a user visits sports news, USS classifies and tags "sport" to him.
-So we have a pair: (the user_id, and the segment) for example, (u104010, "sports").
+## Architecture
+The architecture of the system will consist of the following components:
 
-We want to develop an Estimation Service (ES) that interacts with USS directly.
-ES receives the pair from USS as input and stores it.
-The responsibility of ES is to answer a simple query: "How many users exist on a specific segment?".
-For example, "how many users are in the sports segment?".
+1. InfluxDB for long-term storage of user segments and counts. InfluxDB is a time series database and is suitable for storing time-stamped data. It also has built-in retention policies to automatically expire data after a certain amount of time, eliminating the need to manually archive data.
 
-![](https://raw.githubusercontent.com/ArmanCreativeSolutions/go-challenge/main/Untitled%20Diagram.drawio.png?raw=true)
+2. Redis for caching the user counts by segment. Redis is an in-memory data store that provides fast access to data. It will be used to store the current counts of active users in each segment, reducing the number of queries to InfluxDB and improving overall performance.
 
-The query is simple, but two assumptions may make it a little challenging:
-- A specific user remains just two weeks on a segment. After that,
-we should not count "u104010" on the sports segment.
-- There are millions of users and hundreds of segments. So your solution(s) must be scalable
+3. Load Balancer to distribute incoming requests evenly among multiple instances of the USS. This will help to avoid overloading any single instance and improve the overall performance and reliability of the system.
 
+4. Kubernetes to manage the deployment and scaling of the USS instances. Kubernetes will make it easy to add new instances as needed, ensuring that the system can scale to meet growing demands.
 
-## Requirements
+### Retention Policy
+InfluxDB will be used to store the user segments and counts, and it will be configured with a retention policy to automatically expire data after two weeks. This means that after two weeks, the data for an inactive user will be automatically removed from the database.
 
-- Implement a (REST API, RESTful API, soap, Graphql, RPC, gRPC, or whatever protocol you prefer)
-interface to receive data (user_id, segment pair) from USS. 
-- Implement a method to estimate the number of users in a specific segment. ( `func estimate(segment) -> number of users`)
+### Updating the Cache
+To update the Redis cache, a periodic job will be set up in Kubernetes to retrieve the latest counts from InfluxDB and store them in Redis. This job will run at a configurable interval, ensuring that the cache always contains the latest information.
 
-## Implementation details
+### Retrieving User Counts
+To retrieve the number of active users in a specific segment, the USS will first check the Redis cache for the count. If the count is not found in the cache, the USS will retrieve it from InfluxDB and store it in the cache for future queries.
 
-Try to write your code as reusable and readable as possible.
-Also, don't forget to document your code and clear the reasons for all your decisions in the code.
+### Storing New User Segments
+To store a new pair of user and segment, the USS will write the data to both InfluxDB and Redis. The InfluxDB write will include a timestamp indicating when the data will expire (i.e. after two weeks). The Redis write will update the count for the specified segment.
 
-If your solution is not simple enough for implementing fast, you can just describe it in your documents.
+### Load Balancing
+To improve performance, a load balancer will be used to distribute incoming requests evenly among multiple instances of the USS. The load balancer will help to avoid overloading any single instance, ensuring that the system remains responsive even under heavy load.
 
-Use any tools that you prefer just explain the reason of choices in your documents.
-For example explain why you choose REST API for receiving data.
-
-It is more valuable to us that the project comes with unit tests.
-
-Please fork this repository and add your code to that.
-Don't forget that your commits are so important.
-So be sure that you're committing your code often with a proper commit message.
+### Scaling
+The USS can be easily scaled by adding new instances. The Kubernetes cluster will automatically distribute incoming requests among the available instances, ensuring that the system can handle growing demands. Additionally, the use of InfluxDB and Redis will allow the system to scale horizontally, providing improved performance and reliability.
