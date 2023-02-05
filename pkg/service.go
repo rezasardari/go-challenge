@@ -1,11 +1,14 @@
 package pkg
 
-import "context"
+import (
+	"context"
+)
 
 type Service interface {
 	GetUserCountBySegmentation(context context.Context, req UserCountBySegmentRequest) (*UserCountBySegmentResponse, error)
 	StoreUserSegment(ctx context.Context, req StoreUserSegmentRequest) error
 	ArchiveExpiredSegment(ctx context.Context) error
+	UpdateCacheData(ctx context.Context) error
 }
 
 type ServiceImpl struct {
@@ -53,4 +56,20 @@ func (s *ServiceImpl) retrieveFromCache(ctx context.Context, segment string) (*U
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (s *ServiceImpl) UpdateCacheData(ctx context.Context) error {
+	return nil
+}
+
+func (s *ServiceImpl) updateCacheData(ctx context.Context) error {
+	res, err := s.Repository.CountUsersInAllSegments(ctx)
+	if err != nil {
+		return err
+	}
+	rErr := s.Redis.StoreUserCountsInAllSegment(ctx, res)
+	if rErr != nil {
+		return rErr
+	}
+	return nil
 }
