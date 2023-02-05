@@ -13,6 +13,7 @@ The architecture of this system is composed of several components:
   - Endpoint for storing new pairs of user and segment: this endpoint is used to store the new pairs of user and segment in the cache and postgres.
 - Load Balancer
 - Postgres
+- Kubernetes: to handle deployment and periodic tasks!
 
 ![](media/arch.jpg)
 
