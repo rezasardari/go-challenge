@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS "user-segment"(
     "id" bigserial PRIMARY KEY
-        constraint banner_pkey
+        constraint user_segment_pkey
             NOT NULL,
     "created_at" timestamp DEFAULT (now()),
     "updated_at" timestamp,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS "user-segment"(
 
 CREATE TABLE if NOT EXISTS "archived-user-segment" (
     "id" bigserial PRIMARY KEY
-        constraint banner_pkey
+        constraint archived_user_segment_pkey
             NOT NULL,
     "created_at" timestamp DEFAULT (now()),
     "updated_at" timestamp,
