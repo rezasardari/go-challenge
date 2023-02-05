@@ -22,13 +22,27 @@ func (c *ClientImpl) CountUsersInSegment(context context.Context, title string) 
 	if err != nil {
 		return nil, err
 	}
-	return &pkg.UserCountBySegmentResponse{Segmentation: title, Count: intCount}, nil
+	return &pkg.UserCountBySegmentResponse{Segment: title, Count: intCount}, nil
 }
 
 func (c *ClientImpl) StoreUserCountInSegment(context context.Context, data pkg.UserCountBySegmentResponse) {
-	c.rdb.Set(context, data.Segmentation, data.Count, c.duration)
+	c.rdb.Set(context, data.Segment, data.Count, c.duration)
 }
 
 func (c *ClientImpl) ClearUserCacheInSegment(context context.Context, title string) {
 	c.rdb.Del(context, title)
+}
+
+func (c *ClientImpl) StoreUserCountsInAllSegment(ctx context.Context, data []pkg.UserCountBySegmentResponse) error {
+	pipe := c.rdb.Pipeline()
+	for _, item := range data {
+		// Queue commands in the pipeline
+		pipe.Set(ctx, item.Segment, item.Count, c.duration)
+	}
+	// Execute all commands in the pipeline
+	_, err := pipe.Exec(context.Background())
+	if err != nil {
+		return err
+	}
+	return nil
 }
