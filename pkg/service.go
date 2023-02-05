@@ -59,6 +59,14 @@ func (s *ServiceImpl) retrieveFromCache(ctx context.Context, segment string) (*U
 }
 
 func (s *ServiceImpl) UpdateCacheData(ctx context.Context) error {
+	resp, err := s.Repository.CountUsersInAllSegments(ctx)
+	if err != nil {
+		return err
+	}
+	rErr := s.Redis.StoreUserCountsInAllSegment(ctx, resp)
+	if rErr != nil {
+		return rErr
+	}
 	return nil
 }
 
