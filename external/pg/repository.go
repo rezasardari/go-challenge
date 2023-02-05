@@ -18,8 +18,8 @@ func (r *RepositoryImpl) CountUsersInSegment(ctx context.Context, req pkg.UserCo
 		return nil, err
 	}
 	return &pkg.UserCountBySegmentResponse{
-		Segmentation: req.Name,
-		Count:        int(count),
+		Segment: req.Name,
+		Count:   int(count),
 	}, nil
 }
 
@@ -35,7 +35,7 @@ func (r *RepositoryImpl) StoreUserInSegment(ctx context.Context, req pkg.StoreUs
 }
 
 func (r *RepositoryImpl) ArchiveExpiredData(ctx context.Context) error {
-	return r.DB.Transaction(func(tx *gorm.DB) error {
+	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var records []UserSegmentModel
 		twoWeeksAgo := time.Now().AddDate(0, 0, -14)
 		if err := tx.Where("created_at < ?", twoWeeksAgo).Find(&records).Error; err != nil {
@@ -51,4 +51,16 @@ func (r *RepositoryImpl) ArchiveExpiredData(ctx context.Context) error {
 		}
 		return nil
 	})
+}
+
+func (r *RepositoryImpl) CountUsersInAllSegments(ctx context.Context) ([]pkg.UserCountBySegmentResponse, error) {
+	var countBySegment []pkg.UserCountBySegmentResponse
+	twoWeeksAgo := time.Now().Add(-14 * 24 * time.Hour)
+	err := r.DB.WithContext(ctx).Model(UserSegmentModel{}).Where("created_at >= ?", twoWeeksAgo).
+		Select("segment, count(*) as count").Group("segment").
+		Scan(&countBySegment).Error
+	if err != nil {
+		return nil, err
+	}
+	return countBySegment, nil
 }
