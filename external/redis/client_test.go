@@ -15,8 +15,8 @@ func Test_CountUsersInSegment_whenSegmentAlreadyCached(t *testing.T) {
 	db, mock := redismock.NewClientMock()
 	mock.ExpectGet("sport").SetVal("20")
 	redisClient := ClientImpl{
-		rdb:      db,
-		duration: time.Hour,
+		Rdb:      db,
+		Duration: time.Hour,
 	}
 
 	res, err := redisClient.CountUsersInSegment(c, "sport")
@@ -31,8 +31,8 @@ func Test_CountUsersInSegment_whenSegmentNotInCache(t *testing.T) {
 	db, mock := redismock.NewClientMock()
 	mock.ExpectGet("sport").RedisNil()
 	redisClient := ClientImpl{
-		rdb:      db,
-		duration: time.Hour,
+		Rdb:      db,
+		Duration: time.Hour,
 	}
 	_, err := redisClient.CountUsersInSegment(c, "sport")
 	asserts.NotNil(err)
