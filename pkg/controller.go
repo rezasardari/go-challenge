@@ -56,3 +56,8 @@ func (cr Controller) ArchiveExpiredData(c *gin.Context) {
 	cr.Service.ArchiveExpiredSegment(c)
 	c.JSON(http.StatusNoContent, gin.H{})
 }
+
+func (cr Controller) UpdateCacheData(c *gin.Context) {
+	cr.Service.ArchiveExpiredSegment(c)
+	c.JSON(http.StatusNoContent, gin.H{})
+}
