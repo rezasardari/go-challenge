@@ -13,7 +13,8 @@ type RepositoryImpl struct {
 
 func (r *RepositoryImpl) CountUsersInSegment(ctx context.Context, req pkg.UserCountBySegmentRequest) (*pkg.UserCountBySegmentResponse, error) {
 	var count int64
-	err := r.DB.WithContext(ctx).Model(UserSegmentModel{}).Count(&count).Where("segment = ? AND created_at >= NOW() - INTERVAL '2 weeks'", req.Name).Error
+	twoWeeksAgo := time.Now().AddDate(0, 0, -14)
+	err := r.DB.WithContext(ctx).Model(UserSegmentModel{}).Where("segment = ? AND created_at > ?", req.Name, twoWeeksAgo).Count(&count).Error
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +39,7 @@ func (r *RepositoryImpl) ArchiveExpiredData(ctx context.Context) error {
 	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var records []UserSegmentModel
 		twoWeeksAgo := time.Now().AddDate(0, 0, -14)
-		if err := tx.Where("created_at < ?", twoWeeksAgo).Find(&records).Error; err != nil {
+		if err := tx.Model(UserSegmentModel{}).Where("created_at < ?", twoWeeksAgo).Scan(&records).Error; err != nil {
 			return err
 		}
 		archivedUserSegment := toUserSegmentArchivedModel(records)
@@ -46,7 +47,7 @@ func (r *RepositoryImpl) ArchiveExpiredData(ctx context.Context) error {
 			return err
 		}
 
-		if err := tx.Delete(records).Error; err != nil {
+		if err := tx.Unscoped().Delete(records).Error; err != nil {
 			return err
 		}
 		return nil
