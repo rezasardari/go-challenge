@@ -1,40 +1,12 @@
-# How many users? (Go Challenge)
+# Event Driven Solution Using Apache Kafka
+This solution makes use of an event-driven architecture, where events (i.e. new user-segment pairs) are sent to a message queue (in this case Apache Kafka) for processing. This allows for scalable, parallel processing of the data, which is especially important as the number of users and segments grows.
 
-Suppose there is a "User Segmentation Service" (USS) that segments users based on their activities.
-For example, if a user visits sports news, USS classifies and tags "sport" to him.
-So we have a pair: (the user_id, and the segment) for example, (u104010, "sports").
+## Here is a high-level overview of the architecture:
 
-We want to develop an Estimation Service (ES) that interacts with USS directly.
-ES receives the pair from USS as input and stores it.
-The responsibility of ES is to answer a simple query: "How many users exist on a specific segment?".
-For example, "how many users are in the sports segment?".
+1. The User Segmentation Service (USS) sends a message containing a new user-segment pair to Apache Kafka.
+2. A consumer of the Apache Kafka topic processes the message and updates the counts for each segment in a database (for example InfluxDB). This consumer can be run in parallel across multiple instances to handle high volumes of data.
+3. A separate process periodically retrieves the segment counts from the database and updates a Redis cache.
+4. The Endpoint Service (ES) retrieves the segment counts from the Redis cache and returns them in response to the user's request.
+5. To ensure high availability and scalability, this architecture can be deployed using a load balancer, such as HAProxy, to distribute the incoming user requests to multiple instances of the Endpoint Service. Additionally, the consumer and cache update processes can be run on a Kubernetes cluster, which provides automatic scaling and management of the resources.
 
-![](https://raw.githubusercontent.com/ArmanCreativeSolutions/go-challenge/main/Untitled%20Diagram.drawio.png?raw=true)
-
-The query is simple, but two assumptions may make it a little challenging:
-- A specific user remains just two weeks on a segment. After that,
-we should not count "u104010" on the sports segment.
-- There are millions of users and hundreds of segments. So your solution(s) must be scalable
-
-
-## Requirements
-
-- Implement a (REST API, RESTful API, soap, Graphql, RPC, gRPC, or whatever protocol you prefer)
-interface to receive data (user_id, segment pair) from USS. 
-- Implement a method to estimate the number of users in a specific segment. ( `func estimate(segment) -> number of users`)
-
-## Implementation details
-
-Try to write your code as reusable and readable as possible.
-Also, don't forget to document your code and clear the reasons for all your decisions in the code.
-
-If your solution is not simple enough for implementing fast, you can just describe it in your documents.
-
-Use any tools that you prefer just explain the reason of choices in your documents.
-For example explain why you choose REST API for receiving data.
-
-It is more valuable to us that the project comes with unit tests.
-
-Please fork this repository and add your code to that.
-Don't forget that your commits are so important.
-So be sure that you're committing your code often with a proper commit message.
+This solution provides several benefits over traditional monolithic architectures. First, the use of Apache Kafka allows for asynchronous, parallel processing of the user-segment pairs, which is essential for handling high volumes of data. Second, the use of a cache (Redis) allows for quick retrieval of the segment counts, while the use of a database (InfluxDB) provides a persistent storage solution that can handle large amounts of data. Finally, the use of Kubernetes provides automatic scaling and management of the resources, which helps ensure high availability and scalability.
