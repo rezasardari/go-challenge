@@ -1,40 +1,23 @@
-# How many users? (Go Challenge)
+# User Segmentation System
+## Introduction
+This system is designed to efficiently manage and retrieve the number of users in different segments.
 
-Suppose there is a "User Segmentation Service" (USS) that segments users based on their activities.
-For example, if a user visits sports news, USS classifies and tags "sport" to him.
-So we have a pair: (the user_id, and the segment) for example, (u104010, "sports").
+## Architecture
+The architecture of this system is composed of several components:
 
-We want to develop an Estimation Service (ES) that interacts with USS directly.
-ES receives the pair from USS as input and stores it.
-The responsibility of ES is to answer a simple query: "How many users exist on a specific segment?".
-For example, "how many users are in the sports segment?".
-
-![](https://raw.githubusercontent.com/ArmanCreativeSolutions/go-challenge/main/Untitled%20Diagram.drawio.png?raw=true)
-
-The query is simple, but two assumptions may make it a little challenging:
-- A specific user remains just two weeks on a segment. After that,
-we should not count "u104010" on the sports segment.
-- There are millions of users and hundreds of segments. So your solution(s) must be scalable
+- Redis: used as a cache to store the number of users in each segment.
+- Endpoints:
+  - Endpoint for archiving expired data: this endpoint is used to remove the expired data from the cache. A job in Kubernetes is defined to call this endpoint periodically.
+  - Endpoint for updating cache: this endpoint is used to update the number of users in each segment in the cache. A job in Kubernetes is defined to call this endpoint periodically.
+  - Endpoint for retrieving user count in a specific segment: this endpoint is used to retrieve the number of users in a specific segment from the cache.
+  - Endpoint for storing new pairs of user and segment: this endpoint is used to store the new pairs of user and segment in the cache.
+- Load Balancer
+- Postgres
 
 
-## Requirements
+## Scalability
+This system is suitable for scaling as it separates the storage and retrieval of data, allowing for horizontal scaling of the cache. Additionally, the use of a distributed task queue such as Kubernetes allows for parallel processing and improved performance.
 
-- Implement a (REST API, RESTful API, soap, Graphql, RPC, gRPC, or whatever protocol you prefer)
-interface to receive data (user_id, segment pair) from USS. 
-- Implement a method to estimate the number of users in a specific segment. ( `func estimate(segment) -> number of users`)
+By utilizing a cache, the system also reduces the load on the database and improves the response time for retrieving user count in a specific segment.
 
-## Implementation details
-
-Try to write your code as reusable and readable as possible.
-Also, don't forget to document your code and clear the reasons for all your decisions in the code.
-
-If your solution is not simple enough for implementing fast, you can just describe it in your documents.
-
-Use any tools that you prefer just explain the reason of choices in your documents.
-For example explain why you choose REST API for receiving data.
-
-It is more valuable to us that the project comes with unit tests.
-
-Please fork this repository and add your code to that.
-Don't forget that your commits are so important.
-So be sure that you're committing your code often with a proper commit message.
+In case of increased load, the cache can be easily scaled horizontally by adding more nodes to the cache cluster. The use of Kubernetes also allows for seamless scaling of the system components.
