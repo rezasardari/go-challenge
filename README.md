@@ -14,6 +14,9 @@ The architecture of this system is composed of several components:
 - Load Balancer
 - Postgres
 
+![](media/arch.jpg)
+
+
 
 ## Scalability
 This system is suitable for scaling as it separates the storage and retrieval of data, allowing for horizontal scaling of the cache. Additionally, the use of a distributed task queue such as Kubernetes allows for parallel processing and improved performance.
