@@ -1,15 +1,15 @@
 package pkg
 
 type UserCountBySegmentRequest struct {
-	Name string
+	Name string `form:"name" json:"name"`
 }
 
 type UserCountBySegmentResponse struct {
-	Segment string
-	Count   int
+	Segment string `json:"segment"`
+	Count   int    `json:"count"`
 }
 
 type StoreUserSegmentRequest struct {
-	UserID  string
-	Segment string
+	UserID  string `json:"user_id"`
+	Segment string `json:"segment"`
 }
