@@ -2,9 +2,11 @@ package pkg
 
 import (
 	"context"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"sync"
 	"testing"
 )
 
@@ -34,6 +36,13 @@ func (r *RepositoryMock) CountUsersInAllSegments(ctx context.Context) ([]UserCou
 
 type RedisMock struct {
 	mock.Mock
+	wg        sync.WaitGroup
+	CallCount int
+}
+
+func (c *RedisMock) currentCount() int {
+	c.wg.Wait() // wait for all the call to happen. This will block until wg.Done() is called.
+	return c.CallCount
 }
 
 func (c *RedisMock) CountUsersInSegment(context context.Context, title string) (*UserCountBySegmentResponse, error) {
@@ -45,6 +54,8 @@ func (c *RedisMock) StoreUserCountInSegment(context context.Context, data UserCo
 	return
 }
 func (c *RedisMock) ClearUserCacheInSegment(ctx context.Context, title string) {
+	c.wg.Done()
+	c.CallCount += 1
 	c.Called(ctx, title)
 	return
 }
@@ -103,4 +114,27 @@ func Test_GetUserCountBySegmentation_WhenCacheIsNull(t *testing.T) {
 	asserts.Nil(err)
 	redisMock.AssertCalled(t, "CountUsersInSegment", mock.Anything, mock.Anything)
 	repositoryMock.AssertCalled(t, "CountUsersInSegment", mock.Anything, mock.Anything)
+}
+
+func Test_StoreUserSegment_CheckOldCacheDeleted_ok(t *testing.T) {
+	asserts := assert.New(t)
+
+	redisMock := new(RedisMock)
+	repositoryMock := new(RepositoryMock)
+
+	sut := ServiceImpl{
+		Repository: repositoryMock,
+		Redis:      redisMock,
+	}
+
+	repositoryMock.On("StoreUserInSegment", mock.Anything, mock.Anything).Return(nil)
+	redisMock.On("ClearUserCacheInSegment", mock.Anything, mock.Anything)
+	redisMock.wg.Add(1)
+	err := sut.StoreUserSegment(context.Background(), StoreUserSegmentRequest{"1", "sport"})
+	asserts.Nil(err)
+
+	fmt.Println(redisMock.currentCount())
+	if redisMock.CallCount != 1 {
+		t.Error("redis not called")
+	}
 }
