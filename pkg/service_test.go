@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"context"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -133,8 +132,7 @@ func Test_StoreUserSegment_CheckOldCacheDeleted_ok(t *testing.T) {
 	err := sut.StoreUserSegment(context.Background(), StoreUserSegmentRequest{"1", "sport"})
 	asserts.Nil(err)
 
-	fmt.Println(redisMock.currentCount())
-	if redisMock.CallCount != 1 {
+	if redisMock.currentCount() != 1 {
 		t.Error("redis not called")
 	}
 }
